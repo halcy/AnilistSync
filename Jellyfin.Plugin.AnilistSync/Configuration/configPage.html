@@ -1,0 +1,286 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>AnilistSync Srobbler Settings</title>
+</head>
+<body>
+<div data-role="page" class="page type-interior pluginConfigurationPage" id="AnilistSyncConfigurationPage"
+     data-require="emby-button,emby-checkbox,emby-input,emby-select">
+    <div data-role="content">
+        <div class="content-primary">
+            <h1>AnilistSync Srobbler Settings</h1>
+            <form id="AnilistSyncConfigurationForm">
+                <div id="selectContainer">
+                    <select onchange="AnilistSyncConfig.onSelectorChange();" is="emby-select" id="user-selector"
+                            label="Showing plugin settings for...">
+                        <!-- This will be populated by SimklConfig.populateUsers -->
+                    </select>
+                </div>
+                <div id="loginButtonContainer" hidden>
+                    <h3>It seems you are not logged in, do you wish to log in?</h3>
+                    <button onclick="AnilistSyncConfig.startLoginProcess();" is="emby-button" type="button"
+                            class="raised button-submit block"><span>Log In</span></button>
+                    <button onclick="location.href='https://anilist.co/signup';" is="emby-button" type="button"
+                            class="raised block"><span>Create an account</span></button>
+                </div>
+                <div id="loggingIn" hidden>
+                    <h2>Logging In</h2>
+                    <div id="loginText"></div>
+                    <div id="inputCodeContainer">
+                        <input is="emby-input" id="AnilistAuthCodeInput" label="Anilist Authorization Code:" />
+                        <div class="fieldDescription">
+                            Anilist authorization code from redirect
+                        </div>
+                    </div>
+                    <button onclick="AnilistSyncConfig.submitAuthCode();" is="emby-button" type="button"
+                            class="raised button-submit block"><span>Submit</span></button>
+                    <button onclick="AnilistSyncConfig.stopLoginProcess();" is="emby-button" type="button"
+                            class="raised button-cancel block"><span>Cancel</span></button>
+                </div>
+                <div id="configOptionsContainer" hidden>
+                    <h3>Hello again <span id="simklName">USERNAME</span>!</h3>
+                    <button onclick="AnilistSyncConfig.logOut();" is="emby-button" type="button" class="raised button block">
+                        <span>Log Out</span></button>
+                    <h2>Scrobbling options:</h2>
+                    <div class="checkboxcontainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="ScrobbleMovies"/>
+                            <span>Autoscrobbling Movies</span>
+                        </label>
+                    </div>
+                    <div class="checkboxcontainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="ScrobbleShows"/>
+                            <span>Autoscrobbling TV Shows</span>
+                        </label>
+                    </div>
+                    <div class="inputContainer">
+                        <input is="emby-input" id="ScrobblePercentage" type="number" min="0" max="100" pattern="[0-9]*"
+                               label="Scrobbling percentage:"/>
+                        <div class="fieldDescription">
+                            Percentage watched needed to scrobble
+                        </div>
+                    </div>
+                    <button is="emby-button" type="submit" class="raised button-submit block"><span>${Save}</span>
+                    </button>
+                    <button is="emby-button" type="button" class="raised block" onclick="history.back();"><span>${Cancel}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var AnilistSyncConfig = {
+            guid: "18c2a8ea-afa0-4a0b-aa94-072b492ab80b",
+            onLoginProcess: false,
+            configCache: [],
+            loginTimer: null,
+            remainingTimer: null,
+            finish: null,
+
+            userSelector: document.querySelector('#user-selector'),
+            loginButtonContainer: document.querySelector('#loginButtonContainer'),
+            configOptionsContainer: document.querySelector('#configOptionsContainer'),
+            simklName: document.querySelector('#simklName'),
+            loginSecondsRemaining: document.querySelector('#loginSecondsRemaining'),
+            loginText: document.querySelector('#loginText'),
+            loginPin: document.querySelector('#loginPin'),
+            loggingIn: document.querySelector('#loggingIn'),
+
+            populateUsers: async function (users) {
+                users.forEach(function (user) {
+                    AnilistSyncConfig.userSelector.append(new Option(user.Name, user.Id));
+                });
+            },
+            loadConfig: async function (user, config) {
+                if (config != null) {
+                    this.configCache = config;
+                } else {
+                    config = this.configCache;
+                }
+
+                console.log("AnilistSync: Loading config for user " + user);
+                console.log(config);
+
+                AnilistSyncConfig.loginButtonContainer.setAttribute('hidden', '');
+                AnilistSyncConfig.configOptionsContainer.setAttribute('hidden', '')
+
+                if (config.UserConfigs.some(e => e.Id === user && e.UserToken != null && e.UserToken !== "")) {
+                    AnilistSyncConfig.configOptionsContainer.removeAttribute('hidden');
+                    await this.populateOptionsContainer(config.UserConfigs.filter(e => e.Id === user)[0]);
+                } else {
+                    AnilistSyncConfig.loginButtonContainer.removeAttribute('hidden');
+                }
+            },
+            saveConfig: async function (guid) {
+                const uconfig = this.configCache.UserConfigs.filter(e => e.Id === guid)[0];
+
+                for (const key in uconfig) {
+                    const element = document.querySelector("#configOptionsContainer #" + key);
+                    if (element) {
+                        if (element.type === 'checkbox') {
+                            uconfig[key] = element.checked;
+                        } else {
+                            if (element.value != null) {
+                                uconfig[key] = element.value;
+                            }
+                        }
+                    }
+                }
+
+                console.log("Saving config:");
+                console.log(this.configCache);
+                ApiClient.updatePluginConfiguration(this.guid, this.configCache).then(Dashboard.processPluginConfigurationUpdateResult);
+            },
+            populateOptionsContainer: async function (userConfig) {
+                const userSettings = await AnilistAPI.getUserSettings(userConfig.Id);
+                console.log("User");
+                console.log(userSettings);
+                AnilistSyncConfig.simklName.innerText = userSettings.data.Viewer.name;
+
+                for (const key in userConfig) {
+                    const chk = document.querySelector("#configOptionsContainer input[type=checkbox]#" + key);
+                    if (chk) {
+                        chk.checked = userConfig[key];
+                    }
+
+                    const input = document.querySelector("#configOptionsContainer input[type=number]#" + key);
+                    if (input) {
+                        input.value = userConfig[key];
+                    }
+                }
+            },
+            startLoginProcess: async function () {
+                this.onLoginProcess = true;
+                AnilistAPI.openAnilistAuth();
+
+                AnilistSyncConfig.loginText.innerHTML = 'Please log in and authorize the application.';
+
+                AnilistSyncConfig.loginButtonContainer.setAttribute('hidden', '');
+                AnilistSyncConfig.loggingIn.removeAttribute('hidden');
+            },
+            stopLoginProcess: async function () {
+                this.onLoginProcess = false;
+                document.getElementById("AnilistAuthCodeInput").value = "";
+                AnilistSyncConfig.loginButtonContainer.removeAttribute('hidden');
+                AnilistSyncConfig.loggingIn.setAttribute('hidden', '');
+            },
+            submitAuthCode: async function () {
+                const code = document.getElementById("AnilistAuthCodeInput").value;
+                const response = await AnilistAPI.getToken(code)
+                console.log("Response:");
+                console.log(response);
+
+                await this.stopLoginProcess();
+
+                // Save key to plugin config
+                const uguid = AnilistSyncConfig.userSelector.value;
+                const filter = this.configCache.UserConfigs.filter(function (c) {
+                    return c.Id === uguid;
+                });
+                if (filter.length > 0) {
+                    filter[0].UserToken = response.access_token;
+                } else {
+                    this.configCache.UserConfigs.push({
+                        Id: uguid,
+                        UserToken: response.access_token
+                    });
+                }
+
+                console.log(this.configCache);
+
+                ApiClient.updatePluginConfiguration(this.guid, this.configCache);
+                await this.loadConfig(uguid);
+            },
+            onSelectorChange: async function () {
+                if (this.onLoginProcess) {
+                    await this.stopLoginProcess();
+                }
+                await this.loadConfig(AnilistSyncConfig.userSelector.value, null);
+            },
+            logOut: function (uguid) {
+                if (uguid == null) {
+                    uguid = AnilistSyncConfig.userSelector.value;
+                }
+
+                var filter = this.configCache.UserConfigs.filter(function (c) {
+                    return c.Id === uguid;
+                });
+                console.log(filter);
+
+                if (filter.length > 0) {
+                    filter[0].UserToken = "";
+                } else {
+                    console.log("User not found " + uguid);
+                }
+
+                console.log(this.configCache);
+                window.ApiClient.updatePluginConfiguration(this.guid, this.configCache);
+                this.loadConfig(uguid);
+            }
+        }
+
+        var AnilistAPI = {
+            openAnilistAuth: function () {
+                window.open('https://anilist.co/api/v2/oauth/authorize?client_id=5659&redirect_uri=https://anilist.co/api/v2/oauth/pin&response_type=code')
+            },
+            getToken: function (user_code) {
+                const request = {
+                    url: window.ApiClient.getUrl('AnilistSync/oauth/token/' + user_code),
+                    type: 'GET',
+                    headers: {
+                        accept: 'application/json'
+                    }
+                }
+
+                return window.ApiClient.fetch(request)
+                    .then(function (result) {
+                        return result;
+                    })
+                    .catch(function (result) {
+                        console.error(result);
+                        Dashboard.alert("Some error orccurred, see browser log for more details");
+                        AnilistSyncConfig.stopLoginProcess();
+                    });
+            },
+            getUserSettings: function (secret) {
+                const request = {
+                    url: window.ApiClient.getUrl('AnilistSync/users/settings/' + secret),
+                    type: 'GET',
+                    headers: {
+                        accept: 'application/json'
+                    }
+                }
+
+                return window.ApiClient.fetch(request)
+                    .then(function (result) {
+                        return result;
+                    })
+                    .catch(function (result) {
+                        console.error(result);
+                        Dashboard.alert("Something went wrong, see logs for more details");
+                    });
+            }
+        }
+
+        document.querySelector('#AnilistSyncConfigurationPage')
+            .addEventListener('pageshow', async function () {
+                Dashboard.showLoadingMsg();
+                await Promise.all([
+                    window.ApiClient.getUsers().then(AnilistSyncConfig.populateUsers),
+                    window.ApiClient.getPluginConfiguration(AnilistSyncConfig.guid).then(AnilistSyncConfig.loadConfig.bind(AnilistSyncConfig, ApiClient.getCurrentUserId()))]);
+                Dashboard.hideLoadingMsg();
+            });
+
+        document.querySelector('#AnilistSyncConfigurationForm')
+            .addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                Dashboard.showLoadingMsg();
+                AnilistSyncConfig.saveConfig(AnilistSyncConfig.userSelector.value);
+                Dashboard.hideLoadingMsg();
+            });
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30804.86
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Jellyfin.Plugin.AnilistSync", "Jellyfin.Plugin.AnilistSync\Jellyfin.Plugin.AnilistSync.csproj", "{2C1895EC-A7E1-48B6-A2E0-3E847D1FB748}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{785517C0-5B12-4228-9D64-2495680C537A}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2C1895EC-A7E1-48B6-A2E0-3E847D1FB748}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2C1895EC-A7E1-48B6-A2E0-3E847D1FB748}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2C1895EC-A7E1-48B6-A2E0-3E847D1FB748}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2C1895EC-A7E1-48B6-A2E0-3E847D1FB748}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {87680E98-9FDC-4691-8096-1E3A901004A7}
+	EndGlobalSection
+EndGlobal
