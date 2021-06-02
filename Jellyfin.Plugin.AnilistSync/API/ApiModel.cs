@@ -71,6 +71,9 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
         [JsonPropertyName("status")]
         public MediaListStatus? Status { get; set; }
+
+        [JsonPropertyName("repeat")]
+        public int? TimesRewatched { get; set; }
     }
 
     public enum MediaListStatus
