@@ -24,21 +24,38 @@
                             class="raised block"><span>Create an account</span></button>
                 </div>
                 <div id="loggingIn" hidden>
-                    <h2>Logging In</h2>
-                    <div id="loginText"></div>
+                    <h2>Logging In...</h2>
+                    <h3>Please visit:</h3>
+                    <h4 is="emby-linkbutton" onclick="AnilistSyncConfig.openAnilistAuth()" class="button-link emby-button" id="authCopy">
+                        https://anilist.co/api/v2/oauth/authorize?client_id=5659&redirect_uri=https://anilist.co/api/v2/oauth/pin&response_type=code
+                    </h4>
+                    <button onclick="AnilistSyncConfig.copyLink()" is="emby-button" type="button"
+                            class="raised button block emby-button">
+                        <span id="copyText">Copy link</span>
+                    </button>
+                    <div class="fieldDescription">
+                        Copy the authorization code from Anilist into the box below
+                    </div>
+                    <!--<h3>Copy the authorization code into the box below</h3>-->
+                    <br>
                     <div id="inputCodeContainer">
                         <input is="emby-input" id="AnilistAuthCodeInput" label="Anilist Authorization Code:" />
                         <div class="fieldDescription">
                             Anilist authorization code from redirect
                         </div>
                     </div>
+                    <br>
                     <button onclick="AnilistSyncConfig.submitAuthCode();" is="emby-button" type="button"
-                            class="raised button-submit block"><span>Submit</span></button>
+                            class="raised button-submit block">
+                        <span>Submit</span>
+                    </button>
                     <button onclick="AnilistSyncConfig.stopLoginProcess();" is="emby-button" type="button"
-                            class="raised button-cancel block"><span>Cancel</span></button>
+                            class="raised button-cancel block">
+                        <span>Cancel</span>
+                    </button>
                 </div>
                 <div id="configOptionsContainer" hidden>
-                    <h3>Hello again <span id="simklName">USERNAME</span>!</h3>
+                    <h3>Hello again <span id="anilistName">USERNAME</span>!</h3>
                     <button onclick="AnilistSyncConfig.logOut();" is="emby-button" type="button" class="raised button block">
                         <span>Log Out</span></button>
                     <h2>Scrobbling options:</h2>
@@ -74,23 +91,35 @@
             guid: "18c2a8ea-afa0-4a0b-aa94-072b492ab80b",
             onLoginProcess: false,
             configCache: [],
-            loginTimer: null,
-            remainingTimer: null,
-            finish: null,
 
             userSelector: document.querySelector('#user-selector'),
             loginButtonContainer: document.querySelector('#loginButtonContainer'),
             configOptionsContainer: document.querySelector('#configOptionsContainer'),
-            simklName: document.querySelector('#simklName'),
-            loginSecondsRemaining: document.querySelector('#loginSecondsRemaining'),
-            loginText: document.querySelector('#loginText'),
-            loginPin: document.querySelector('#loginPin'),
+            anilistName: document.querySelector('#anilistName'),
             loggingIn: document.querySelector('#loggingIn'),
+            copyText: document.querySelector('#copyText'),
+            authCopy: document.querySelector('#authCopy'),
 
             populateUsers: async function (users) {
                 users.forEach(function (user) {
                     AnilistSyncConfig.userSelector.append(new Option(user.Name, user.Id));
                 });
+            },
+            openAnilistAuth: async function () {
+                window.open(authCopy.innerText);
+            },
+            copyLink: async function () {
+                const area = document.createElement('textarea');
+                authCopy.appendChild(area);
+                area.value = authCopy.innerText;
+                console.log(area.value);
+                area.select();
+                document.execCommand('copy');
+
+                copyText.innerText = 'Copied'
+                Dashboard.alert('Copied link');
+
+                authCopy.removeChild(area);
             },
             loadConfig: async function (user, config) {
                 if (config != null) {
@@ -136,7 +165,7 @@
                 const userSettings = await AnilistAPI.getUserSettings(userConfig.Id);
                 console.log("User");
                 console.log(userSettings);
-                AnilistSyncConfig.simklName.innerText = userSettings.data.Viewer.name;
+                AnilistSyncConfig.anilistName.innerText = userSettings.data.Viewer.name;
 
                 for (const key in userConfig) {
                     const chk = document.querySelector("#configOptionsContainer input[type=checkbox]#" + key);
@@ -152,9 +181,6 @@
             },
             startLoginProcess: async function () {
                 this.onLoginProcess = true;
-                AnilistAPI.openAnilistAuth();
-
-                AnilistSyncConfig.loginText.innerHTML = 'Please log in and authorize the application.';
 
                 AnilistSyncConfig.loginButtonContainer.setAttribute('hidden', '');
                 AnilistSyncConfig.loggingIn.removeAttribute('hidden');
@@ -221,9 +247,6 @@
         }
 
         var AnilistAPI = {
-            openAnilistAuth: function () {
-                window.open('https://anilist.co/api/v2/oauth/authorize?client_id=5659&redirect_uri=https://anilist.co/api/v2/oauth/pin&response_type=code')
-            },
             getToken: function (user_code) {
                 const request = {
                     url: window.ApiClient.getUrl('AnilistSync/oauth/token/' + user_code),

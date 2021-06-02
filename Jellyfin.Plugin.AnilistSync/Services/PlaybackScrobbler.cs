@@ -77,7 +77,14 @@ namespace Jellyfin.Plugin.AnilistSync.Services
             {
                 return false;
             }
-            return true;
+
+            // Check if movie or episode then check against user config
+            return playbackProgress.MediaInfo.Type switch
+            {
+                nameof(Movie) => userConfig.ScrobbleMovies,
+                nameof(Episode) => userConfig.ScrobbleShows,
+                _ => false
+            };
         }
 
         private async void OnPlaybackProgress(object? sessions, PlaybackProgressEventArgs eventArgs)
