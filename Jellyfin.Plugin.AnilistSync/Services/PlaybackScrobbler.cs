@@ -173,30 +173,63 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                 var listEntry = _anilistApi.GetListEntry(anilistId, userConfig.UserToken).Result?.Data?.ListEntry;
 
                 int? currentIndex = eventArgs.Item.IndexNumber;
-
+                int? currentRemoteIndex = listEntry?.Progress;
                 int? timesRewatched = listEntry?.TimesRewatched;
                 MediaListStatus? status = listEntry?.Status;
 
-                // Check if STARTING a rewatch
-                if (status == MediaListStatus.COMPLETED)
+                switch (status)
                 {
-                    if (userConfig.ScrobbleRewatches)
-                    {
-                        if (currentIndex == 1) // Check rewatching first episode 
+                    case MediaListStatus.COMPLETED: // Check if STARTING a rewatch
+                        if (userConfig.ScrobbleRewatches)
                         {
-                            status = MediaListStatus.REPEATING;
+                            if (currentIndex == 1) // Only initialize a rewatch if watching first episode
+                            {
+                                status = MediaListStatus.REPEATING;
+                                await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                                _logger.LogInformation("Rewatch started");
+                            }
+                            else
+                            {
+                                _logger.LogInformation("Attempting to start rewatch from middle episode, discarding scrobble");
+                                return;
+                            }
                         }
                         else
                         {
-                            _logger.LogDebug("Attempting to start rewatch from middle episode, discarding scrobble");
+                            _logger.LogInformation("User has chosen not to scrobble rewatches");
                             return;
-                        }   
-                    }
-                    else
-                    {
-                        _logger.LogDebug("User has chosen not to scrobble rewatches");
-                        return;
-                    }
+                        }
+                        break;
+                    case MediaListStatus.REPEATING:
+                        if (userConfig.ScrobbleRewatches)
+                        {
+                            if (currentIndex <= currentRemoteIndex)
+                            {
+                                _logger.LogInformation("Episode number <= Anilist episode watch count, discarding scrobble");
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation("User has chosen not to scrobble rewatches");
+                            return;
+                        }
+                        break;
+                    case MediaListStatus.PLANNING:
+                    case MediaListStatus.DROPPED:
+                    case MediaListStatus.PAUSED:
+                        status = MediaListStatus.CURRENT;
+                        await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                        break;
+                    case MediaListStatus.CURRENT:
+                        if (currentIndex <= currentRemoteIndex)
+                        {
+                            _logger.LogInformation("Episode number <= Anilist episode watch count, discarding scrobble");
+                            return;
+                        }
+                        break;
+                    default:
+                        break;
                 }
 
                 // Get total number of episodes of current item from Anilist
@@ -207,17 +240,15 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                 // If watching LAST episode change status to completed
                 if (currentIndex == episodes)
                 {
-                    if (status == MediaListStatus.REPEATING)
-                    {
-                        timesRewatched += 1;
-                    }
                     status = MediaListStatus.COMPLETED;
+                    var statusResponse = await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                }
+                else
+                {
+                    var response = await _anilistApi.PostListProgressUpdate(listEntry?.Id.ToString(), userConfig.UserToken, currentIndex);
                 }
                 _logger.LogInformation("Current watch status: {status}", status);
-
-                // Send post request to API to update list
-                var response = await _anilistApi.PostListUpdate(listEntry?.Id.ToString(), userConfig.UserToken, currentIndex, status, timesRewatched);
-                _logger.LogDebug("Scrobbled without errors");
+                _logger.LogInformation("Scrobbled without errors");
                 _lastScrobbled[eventArgs.Session.Id] = eventArgs.MediaInfo.Id;
 
             }

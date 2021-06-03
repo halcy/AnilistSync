@@ -24,14 +24,14 @@ namespace Jellyfin.Plugin.AnilistSync.API
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly JsonSerializerOptions _jsonSerializerOptions;
 
-        private const string listIdQuery = @"mutation ($mediaId: Int) {SaveMediaListEntry(mediaId: $mediaId) {id, status, repeat}}&variables={""mediaId"": ""{0}""}";
+        private const string listIdQuery = @"mutation ($mediaId: Int) {SaveMediaListEntry(mediaId: $mediaId) {id, status, repeat, progress}}&variables={""mediaId"": ""{0}""}";
         private const string listUpdateQuery = @"mutation ($id: Int, $progress: Int, $status: MediaListStatus, $repeat: Int) {SaveMediaListEntry(id: $id, progress: $progress, status: $status, repeat: $repeat) {id, progress, status, repeat}}";
+        private const string listStatusUpdateQuery = @"mutation ($id: Int, $status: MediaListStatus) {SaveMediaListEntry(id: $id, status: $status) {id, status}}";
         private const string episodeQuery = @"query ($id: Int) {Media (id: $id) {episodes}}";
         private const string currentUserQuery = @"query {Viewer {id, name}}";
 
         private const string listUpdateVars1 = @"&variables={""id"":""{0}"", ""progress"":""{1}""}";
-        private const string listUpdateVars2 = @"&variables={""id"":""{0}"", ""progress"":""{1}"", ""status"":""{2}""}";
-        private const string listUpdateVars3 = @"&variables={""id"":""{0}"", ""progress"":""{1}"", ""status"":""{2}"", ""repeat"":""{3}""}";
+        private const string listUpdateVars2 = @"&variables={""id"":""{0}"", ""status"":""{1}""}";
 
         public const string BaseOauthUrl = @"https://anilist.co/api/v2";
         public const string BaseGraphQLUrl = @"https://graphql.anilist.co/api/v2?query=";
@@ -115,17 +115,36 @@ namespace Jellyfin.Plugin.AnilistSync.API
             return data;
         }
 
-        public async Task<RootObject?> PostListUpdate(string? anilistMediaId, string? userToken, int? progress, MediaListStatus? status, int? timesRewatched)
+        public async Task<RootObject?> PostListStatusUpdate(string? anilistMediaId, string? userToken, MediaListStatus? status)
+        {
+            var requestMessage = new HttpRequestMessage();
+            requestMessage.RequestUri = new Uri(
+                BaseGraphQLUrl +
+                listStatusUpdateQuery +
+                listUpdateVars2
+                    .Replace("{0}", anilistMediaId)
+                    .Replace("{1}", status.ToString()));
+            requestMessage.Method = HttpMethod.Post;
+            requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
+            requestMessage.Content = new StringContent("", Encoding.UTF8, "application/json");
+            var responseMessage = await _httpClientFactory.CreateClient(NamedClient.Default).SendAsync(requestMessage);
+            var data = await responseMessage.Content.ReadFromJsonAsync<RootObject>(_jsonSerializerOptions);
+            if (data?.Errors != null)
+            {
+                throw new AnilistAPIException(data.Errors);
+            }
+            return data;
+        }
+
+        public async Task<RootObject?> PostListProgressUpdate(string? anilistMediaId, string? userToken, int? progress)
         {
             var requestMessage = new HttpRequestMessage();
             requestMessage.RequestUri = new Uri(
                 BaseGraphQLUrl + 
                 listUpdateQuery + 
-                listUpdateVars3
+                listUpdateVars1
                     .Replace("{0}", anilistMediaId)
-                    .Replace("{1}", progress.ToString())
-                    .Replace("{2}", status.ToString())
-                    .Replace("{3}", timesRewatched.ToString()));
+                    .Replace("{1}", progress.ToString()));
             requestMessage.Method = HttpMethod.Post;
             requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", userToken);
             requestMessage.Content = new StringContent("", Encoding.UTF8, "application/json");
