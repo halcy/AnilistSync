@@ -16,7 +16,7 @@ namespace Jellyfin.Plugin.AnilistSync
     {
         public override string Name => "AnilistSync";
         public override Guid Id => Guid.Parse("18c2a8ea-afa0-4a0b-aa94-072b492ab80b");
-        public override string Description => "Description";
+        public override string Description => "Jellyfin plugin to scrobble to Anilist";
         IHttpClientFactory _httpClientFactory;
 
         public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClientFactory htppClientFactory)

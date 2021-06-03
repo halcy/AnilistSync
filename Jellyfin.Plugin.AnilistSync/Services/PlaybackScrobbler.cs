@@ -180,13 +180,21 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                 // Check if STARTING a rewatch
                 if (status == MediaListStatus.COMPLETED)
                 {
-                    if (currentIndex == 1) // Check rewatching first episode 
+                    if (userConfig.ScrobbleRewatches)
                     {
-                        status = MediaListStatus.REPEATING;
+                        if (currentIndex == 1) // Check rewatching first episode 
+                        {
+                            status = MediaListStatus.REPEATING;
+                        }
+                        else
+                        {
+                            _logger.LogDebug("Attempting to start rewatch from middle episode, discarding scrobble");
+                            return;
+                        }   
                     }
                     else
                     {
-                        _logger.LogDebug("Attempting to start rewatch from middle episode, discarding scrobble");
+                        _logger.LogDebug("User has chosen not to scrobble rewatches");
                         return;
                     }
                 }
