@@ -5,6 +5,7 @@
 ## Features
 - Multi-user support
 - Scrobbling of anime shows/movies to Anilist
+- Rewatch support
 
 
 ## Requirements
