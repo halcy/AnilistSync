@@ -71,18 +71,18 @@
                             <span>Autoscrobbling TV Shows</span>
                         </label>
                     </div>
+                    <div class="checkboxcontainer">
+                        <label>
+                            <input is="emby-checkbox" type="checkbox" id="ScrobbleRewatches"/>
+                            <span>Autoscrobbling Rewatches</span>
+                        </label>
+                    </div>
                     <div class="inputContainer">
                         <input is="emby-input" id="ScrobblePercentage" type="number" min="0" max="100" pattern="[0-9]*"
                                label="Scrobbling percentage:"/>
                         <div class="fieldDescription">
                             Percentage watched needed to scrobble
                         </div>
-                    </div>
-                    <div class="checkboxcontainer">
-                        <label>
-                            <input is="emby-checkbox" type="checkbox" id="ScrobbleRewatches"/>
-                            <span>Autoscrobbling Rewatches</span>
-                        </label>
                     </div>
                     <br>
                     <button is="emby-button" type="submit" class="raised button-submit block"><span>${Save}</span>
