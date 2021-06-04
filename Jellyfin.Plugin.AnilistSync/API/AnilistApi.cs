@@ -1,20 +1,14 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using MediaBrowser.Common.Json;
 using MediaBrowser.Common.Net;
-using MediaBrowser.Controller.Entities.Movies;
-using MediaBrowser.Controller.Entities.TV;
-using MediaBrowser.Model.Dto;
 using Microsoft.Extensions.Logging;
+using Jellyfin.Plugin.AnilistSync.API.Exceptions;
 
 namespace Jellyfin.Plugin.AnilistSync.API
 {

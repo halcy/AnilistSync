@@ -17,24 +17,16 @@ namespace Jellyfin.Plugin.AnilistSync
         public override string Name => "AnilistSync";
         public override Guid Id => Guid.Parse("18c2a8ea-afa0-4a0b-aa94-072b492ab80b");
         public override string Description => "Jellyfin plugin to scrobble to Anilist";
-        IHttpClientFactory _httpClientFactory;
+        public Version version = new Version("2.2.0.0");
 
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClientFactory htppClientFactory)
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
             Instance = this;
-            _httpClientFactory = htppClientFactory;
         }
 
         public static Plugin? Instance { get; private set; }
 
-        public HttpClient GetHttpClient() {
-            var httpClient = _httpClientFactory.CreateClient(NamedClient.Default);
-            httpClient.DefaultRequestHeaders.UserAgent.Add(
-                new ProductInfoHeaderValue(Name, Version.ToString()));
-
-            return httpClient;
-        }
 
         public IEnumerable<PluginPageInfo> GetPages()
         {

@@ -4,24 +4,6 @@ using MediaBrowser.Model.Plugins;
 
 namespace Jellyfin.Plugin.AnilistSync.Configuration
 {
-    public enum TitlePreferenceType
-        {
-            /// <summary>
-            /// Use titles in the local metadata language.
-            /// </summary>
-            Localized,
-
-            /// <summary>
-            /// Use titles in Japanese.
-            /// </summary>
-            Japanese,
-
-            /// <summary>
-            /// Use titles in Japanese romaji.
-            /// </summary>
-            JapaneseRomaji
-        }
-
     /// <summary>
     /// Class needed to create a Plugin and configure it.
     /// </summary>

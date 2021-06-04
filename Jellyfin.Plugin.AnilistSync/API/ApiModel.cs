@@ -1,9 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Jellyfin.Plugin.AnilistSync.API
 {
+    public enum MediaListStatus
+    {
+        CURRENT,
+        PLANNING,
+        COMPLETED,
+        DROPPED,
+        PAUSED,
+        REPEATING
+    }
+
     public class RootObject
     {
         [JsonPropertyName("data")]
@@ -43,22 +51,7 @@ namespace Jellyfin.Plugin.AnilistSync.API
         public int? Line { get; set; }
 
         [JsonPropertyName("column")]
-        public int? column { get; set; }
-    }
-
-    public class Media
-    {
-        [JsonPropertyName("episodes")]
-        public int? Episodes { get; set; }
-    }
-
-    public class User
-    {
-        [JsonPropertyName("id")]
-        public int? Id { get; set; }
-
-        [JsonPropertyName("name")]
-        public string? Name { get; set; }
+        public int? Column { get; set; }
     }
 
     public class ListEntry
@@ -74,6 +67,21 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
         [JsonPropertyName("status")]
         public MediaListStatus? Status { get; set; }
+    }
+
+    public class Media
+    {
+        [JsonPropertyName("episodes")]
+        public int? Episodes { get; set; }
+    }
+
+    public class User
+    {
+        [JsonPropertyName("id")]
+        public int? Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
     }
 
     public class GraphQLBody
@@ -103,16 +111,6 @@ namespace Jellyfin.Plugin.AnilistSync.API
         public string? Code { get; set; }
     }
 
-    public enum MediaListStatus
-    {
-        CURRENT,
-        PLANNING,
-        COMPLETED,
-        DROPPED,
-        PAUSED,
-        REPEATING
-    }
-
     public class CodeResponse
     {
         [JsonPropertyName("token_type")]
@@ -126,36 +124,5 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
         [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
-    }
-
-
-    public class AnilistAPIException : Exception
-    {
-        public int? statusCode;
-        public Location[]? locations;
-
-        public AnilistAPIException()
-        {
-
-        }
-
-        public AnilistAPIException(string message)
-            : base(message)
-        {
-            
-        }
-
-        public AnilistAPIException(string message, Exception inner)
-            : base(message, inner)
-        {
-
-        }
-
-        public AnilistAPIException(string? message, int? statusCode, Location[]? locations)
-            : base(message)
-        {
-            this.statusCode = statusCode;
-            this.locations = locations;
-        }
     }
 }
