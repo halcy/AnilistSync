@@ -1,7 +1,7 @@
 ---
 name: "Anilist Sync"
 guid: "18c2a8ea-afa0-4a0b-aa94-072b492ab80b"
-version: "2.0.0.0"
+version: "1.0.0.0"
 targetAbi: "10.7.0.0"
 owner: "ARufenach"
 overview: "Scrobble to Anilist"
