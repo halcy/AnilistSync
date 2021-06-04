@@ -1,6 +1,7 @@
-<h1 align="center">Jellyfin AnilistSync Plugin</h1>
+<h1 align="center">AnilistSync</h1>
 <h3 align="center">Big thanks to Crobibero for writing the <a href="https://github.com/crobibero/jellyfin-plugin-simkl">Simkl Plugin</a></h3>
 
+A Jellyfin plugin that scrobbles your anime watches to Anilist for easy automatic list updates.
 
 ## Features
 - Multi-user support
@@ -10,3 +11,11 @@
 
 ## Requirements
 - <a href="https://github.com/jellyfin/jellyfin-plugin-anilist">Anilist Plugin</a>: This plugin relies entirely on the Anilist plugin obtaining the correct ID! If its wrong or not present, scrobbling with fail
+
+## Install
+### Repository
+1. Add the repository URL to Jellyfin: `https://raw.githubusercontent.com/ARufenach/jellyfin-plugin-anilist-sync/master/manifest.json`
+2. Install AnilistSync from the plugin catalog
+### Github Release
+1. Download the `.zip` release from [here](https://github.com/ARufenach/jellyfin-plugin-anilist-sync/releases/latest)
+2. Extract the contents into a folder in the `plugins` folder of your Jellyfin install directory
