@@ -11,7 +11,7 @@
                 "version": "1.0.0",
                 "changelog": "Initial release",
                 "targetAbi": "10.7.0.0",
-                "sourceUrl": "https://github.com/ARufenach/jellyfin-plugin-anilist-sync/releases/download/v1.0.0/AnilistSync_1.0.0.zip",
+                "sourceUrl": "https://github.com/ARufenach/AnilistSync/releases/download/v1.0.0/AnilistSync_1.0.0.zip",
                 "checksum": "f099d9935001c1e49c710517e8261765",
                 "timestamp": "2021-06-04T05:05:00Z"
             }
