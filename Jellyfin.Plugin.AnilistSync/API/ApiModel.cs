@@ -10,7 +10,7 @@ namespace Jellyfin.Plugin.AnilistSync.API
         public Data? Data { get; set; }
 
         [JsonPropertyName("errors")]
-        public Error[]? Errors { get; set; }
+        public AnilistError[]? Errors { get; set; }
     }
 
     public class Data
@@ -25,7 +25,7 @@ namespace Jellyfin.Plugin.AnilistSync.API
         public Media? Media { get; set; }
     }
 
-    public class Error
+    public class AnilistError
     {
         [JsonPropertyName("message")]
         public string? ErrorMessage { get; set; }
@@ -63,6 +63,9 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
     public class ListEntry
     {
+        [JsonPropertyName("mediaId")]
+        public int? MediaId { get; set; }
+
         [JsonPropertyName("id")]
         public int? Id { get; set; }
 
@@ -71,9 +74,33 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
         [JsonPropertyName("status")]
         public MediaListStatus? Status { get; set; }
+    }
 
-        [JsonPropertyName("repeat")]
-        public int? TimesRewatched { get; set; }
+    public class GraphQLBody
+    {
+        [JsonPropertyName("query")]
+        public string? Query { get; set; }
+
+        [JsonPropertyName("variables")]
+        public ListEntry? Variables { get; set; }
+    }
+
+    public class OAuth
+    {
+        [JsonPropertyName("grant_type")]
+        public string? GrantType { get; set; }
+
+        [JsonPropertyName("client_id")]
+        public int? ClientId { get; set; }
+
+        [JsonPropertyName("client_secret")]
+        public string? ClientSecret { get; set; }
+
+        [JsonPropertyName("redirect_uri")]
+        public string? RedirectUri { get; set; }
+
+        [JsonPropertyName("code")]
+        public string? Code { get; set; }
     }
 
     public enum MediaListStatus
@@ -99,14 +126,13 @@ namespace Jellyfin.Plugin.AnilistSync.API
 
         [JsonPropertyName("refresh_token")]
         public string? RefreshToken { get; set; }
-
     }
-
 
 
     public class AnilistAPIException : Exception
     {
-        public Error[]? errors;
+        public int? statusCode;
+        public Location[]? locations;
 
         public AnilistAPIException()
         {
@@ -120,14 +146,16 @@ namespace Jellyfin.Plugin.AnilistSync.API
         }
 
         public AnilistAPIException(string message, Exception inner)
-                : base(message, inner)
+            : base(message, inner)
         {
 
         }
 
-        public AnilistAPIException(Error[] errors)
+        public AnilistAPIException(string? message, int? statusCode, Location[]? locations)
+            : base(message)
         {
-            this.errors = errors;
+            this.statusCode = statusCode;
+            this.locations = locations;
         }
     }
 }

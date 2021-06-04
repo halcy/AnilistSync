@@ -170,11 +170,10 @@ namespace Jellyfin.Plugin.AnilistSync.Services
 
 
                 // Get the list entry for current watching show from Anilist
-                var listEntry = _anilistApi.GetListEntry(anilistId, userConfig.UserToken).Result?.Data?.ListEntry;
+                var listEntry = _anilistApi.GetListEntry(userConfig.UserToken, Int32.Parse(anilistId)).Result?.Data?.ListEntry;
 
                 int? currentIndex = eventArgs.Item.IndexNumber;
                 int? currentRemoteIndex = listEntry?.Progress;
-                int? timesRewatched = listEntry?.TimesRewatched;
                 MediaListStatus? status = listEntry?.Status;
 
                 switch (status)
@@ -185,7 +184,7 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                             if (currentIndex == 1) // Only initialize a rewatch if watching first episode
                             {
                                 status = MediaListStatus.REPEATING;
-                                await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                                await _anilistApi.PostListStatusUpdate(userConfig.UserToken, listEntry?.Id, status);
                                 _logger.LogInformation("Rewatch started");
                             }
                             else
@@ -219,7 +218,7 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                     case MediaListStatus.DROPPED:
                     case MediaListStatus.PAUSED:
                         status = MediaListStatus.CURRENT;
-                        await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                        await _anilistApi.PostListStatusUpdate(userConfig.UserToken, listEntry?.Id, status);
                         break;
                     case MediaListStatus.CURRENT:
                         if (currentIndex <= currentRemoteIndex)
@@ -233,36 +232,27 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                 }
 
                 // Get total number of episodes of current item from Anilist
-                int? episodes = (await _anilistApi.GetEpisodes(anilistId))?.Data?.Media?.Episodes;
-                _logger.LogInformation("Total Episodes: {totalEpisodes}", episodes);
-                _logger.LogInformation("Current Episode: {currentEpisode}", currentIndex);
+                int? totalEpisodes = (await _anilistApi.GetEpisodes(Int32.Parse(anilistId)))?.Data?.Media?.Episodes;
 
                 // If watching LAST episode change status to completed
-                if (currentIndex == episodes)
+                if (currentIndex == totalEpisodes)
                 {
                     status = MediaListStatus.COMPLETED;
-                    var statusResponse = await _anilistApi.PostListStatusUpdate(listEntry?.Id.ToString(), userConfig.UserToken, status);
+                    var statusResponse = await _anilistApi.PostListStatusUpdate(userConfig.UserToken, listEntry?.Id, status);
                 }
                 else
                 {
-                    var response = await _anilistApi.PostListProgressUpdate(listEntry?.Id.ToString(), userConfig.UserToken, currentIndex);
+                    var response = await _anilistApi.PostListProgressUpdate(userConfig.UserToken, listEntry?.Id, currentIndex);
                 }
-                _logger.LogInformation("Current watch status: {status}", status);
+                _logger.LogInformation("Scrobbled episode: ({currentIndex} of {totalEpisodes}) for Anilist ID: ({anilistId})", currentIndex, totalEpisodes, anilistId);
+                _logger.LogInformation("Watch status: {status}", status);
                 _logger.LogInformation("Scrobbled without errors");
                 _lastScrobbled[eventArgs.Session.Id] = eventArgs.MediaInfo.Id;
 
             }
-            //catch (InvalidTokenException)
-            //{
-            //    _logger.LogDebug("Deleted user token");
-            //}
             catch (AnilistAPIException aniAPIEx)
             {
-                for (int i = 0; i < aniAPIEx.errors?.Length; i++)
-                {
-                    Error? error = aniAPIEx.errors[i];
-                    _logger.LogError(error.ErrorMessage, "API response code " + error.ErrorStatus);
-                }
+                _logger.LogError(aniAPIEx, "Error status: {aniAPIEx.statusCode}", aniAPIEx.statusCode);
             }
             catch (InvalidDataException ex)
             {
