@@ -15,15 +15,23 @@ using Microsoft.Extensions.Logging;
 
 namespace Jellyfin.Plugin.AnilistSync.Services
 {
-
+    /// <summary>
+    /// Playback progress scrobbler.
+    /// </summary>
     public class PlaybackScrobbler : IServerEntryPoint
     {
-        private readonly ISessionManager _sessionManager; // Needed to set up de startPlayBack and endPlayBack functions
+        private readonly ISessionManager _sessionManager; // Needed to set up the startPlayBack and endPlayBack functions
         private readonly ILogger<PlaybackScrobbler> _logger;
         private readonly Dictionary<string, Guid> _lastScrobbled; // Library ID of last scrobbled item
         private readonly AnilistApi _anilistApi;
         private DateTime _nextTry;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlaybackScrobbler"/> class.
+        /// </summary>
+        /// <param name="sessionManager">Instance of the <see cref="ISessionManager"/> interface.</param>
+        /// <param name="logger">Instance of the <see cref="ILogger{PlaybackScrobbler}"/> interface.</param>
+        /// <param name="anilistApi">Instance of the <see cref="AnilistApi"/>.</param>
         public PlaybackScrobbler(ISessionManager sessionManager, ILogger<PlaybackScrobbler> logger, AnilistApi anilistApi)
         {
             _sessionManager = sessionManager;
@@ -33,6 +41,7 @@ namespace Jellyfin.Plugin.AnilistSync.Services
             _nextTry = DateTime.UtcNow;
         }
 
+        /// <inheritdoc/>
         public Task RunAsync()
         {
             _sessionManager.PlaybackProgress += OnPlaybackProgress;
@@ -40,12 +49,17 @@ namespace Jellyfin.Plugin.AnilistSync.Services
             return Task.CompletedTask;
         }
 
+        /// <inheritdoc/>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>
+        /// Dispose.
+        /// </summary>
+        /// <param name="disposing">Dispoe all resources.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -238,11 +252,11 @@ namespace Jellyfin.Plugin.AnilistSync.Services
                 if (currentIndex == totalEpisodes)
                 {
                     status = MediaListStatus.COMPLETED;
-                    var statusResponse = await _anilistApi.PostListStatusUpdate(userConfig.UserToken, listEntry?.Id, status);
+                    await _anilistApi.PostListStatusUpdate(userConfig.UserToken, listEntry?.Id, status);
                 }
                 else
                 {
-                    var response = await _anilistApi.PostListProgressUpdate(userConfig.UserToken, listEntry?.Id, currentIndex);
+                    await _anilistApi.PostListProgressUpdate(userConfig.UserToken, listEntry?.Id, currentIndex);
                 }
                 _logger.LogInformation("Scrobbled episode: ({currentIndex} of {totalEpisodes}) for Anilist ID: ({anilistId})", currentIndex, totalEpisodes, anilistId);
                 _logger.LogInformation("Watch status: {status}", status);

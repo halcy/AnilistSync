@@ -18,20 +18,23 @@ namespace Jellyfin.Plugin.AnilistSync.Configuration
             ScrobblePercentage = 80;
             ScrobbleNowWatchingPercentage = 5;
             MinLength = 5;
-            UserToken = string.Empty; // Todo: check if token is still valid
+            UserToken = string.Empty;
             ScrobbleTimeout = 30;
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether scrobble movies.
+        /// Gets or sets a value indicating whether to scrobble movies.
         /// </summary>
         public bool ScrobbleMovies { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether scrobble shows.
+        /// Gets or sets a value indicating whether to scrobble shows.
         /// </summary>
         public bool ScrobbleShows { get; set; }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to scrobble rewatches.
+        /// </summary>
         public bool ScrobbleRewatches { get; set; }
 
         /// <summary>
@@ -55,7 +58,7 @@ namespace Jellyfin.Plugin.AnilistSync.Configuration
         /// <summary>
         /// Gets or sets user token.
         /// </summary>
-        public string UserToken { get; set; } // Is the user logged in
+        public string UserToken { get; set; }
 
         /// <summary>
         /// Gets or sets scrobble timeout.
