@@ -1,14 +1,15 @@
 ---
 name: "AnilistSync"
 guid: "18c2a8ea-afa0-4a0b-aa94-072b492ab80b"
-version: "1.0.0.0"
-targetAbi: "10.7.0.0"
+version: "2.0.0.0"
+targetAbi: "10.8.0.0"
 owner: "ARufenach"
 overview: "Scrobble to Anilist"
 description: >
   Jellyfin plugin to scrobble to Anilist
 category: "General"
-framework: "net5.0"
+framework: "net6.0"
 artifacts:
 - "Jellyfin.Plugin.AnilistSync.dll"
 changelog: >
+  Added support for jellyfin 10.8.0
