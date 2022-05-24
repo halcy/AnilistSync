@@ -4,14 +4,14 @@
         "name": "AnilistSync",
         "description": "This plugin will scrobble anime to Anilist for you",
         "overview": "Scrobble to Anilist",
-        "owner": "ARufenach",
+        "owner": "ARufenach, modified by Fallenbagel",
         "category": "General",
         "versions": [
             {
-                "version": "1.0.0",
+                "version": "2.0.0",
                 "changelog": "Initial release",
-                "targetAbi": "10.7.0.0",
-                "sourceUrl": "https://github.com/ARufenach/AnilistSync/releases/download/v1.0.0/AnilistSync_1.0.0.zip",
+                "targetAbi": "10.8.0.0",
+                "sourceUrl": "https://github.com/Fallenbagel/AnilistSync/releases/download/v2.0.0/AnilistSync_2.0.0.zip",
                 "checksum": "f099d9935001c1e49c710517e8261765",
                 "timestamp": "2021-06-04T05:05:00Z"
             }
