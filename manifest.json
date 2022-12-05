@@ -11,7 +11,7 @@
                 "version": "2.0.0",
                 "changelog": "Add support for Jellyfin 10.8",
                 "targetAbi": "10.8.0.0",
-                "sourceUrl": "https://github.com/FortuneSeller/AnilistSync/releases/download/v2.0.0/AnilistSync_2.0.0.zip",
+                "sourceUrl": "https://github.com/FortuneSeller/AnilistSync/archive/refs/tags/v2.0.0.zip",
                 "checksum": "d5aa76d74a279aed5846c1a1adaa0540",
                 "timestamp": "2021-06-04T05:05:00Z"
             }
